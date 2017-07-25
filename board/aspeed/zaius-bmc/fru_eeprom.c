@@ -107,7 +107,11 @@ int do_mac(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			   fru_mac_addr[3],
 			   fru_mac_addr[4],
 			   fru_mac_addr[5]);
-		fru_mac_addr[5] += 1;
+		if (fru_mac_addr[5] == 0) fru_mac_addr[4] += 1;
+		if (fru_mac_addr[4] == 0) fru_mac_addr[3] += 1;
+		if (fru_mac_addr[3] == 0) fru_mac_addr[2] += 1;
+		if (fru_mac_addr[2] == 0) fru_mac_addr[1] += 1;
+		if (fru_mac_addr[1] == 0) fru_mac_addr[0] += 1;
 	}
 	return 0;
 }
@@ -128,17 +132,25 @@ int mac_read_from_eeprom(void)
 	uint8_t fru_mac_addr[MACADDR_SIZE];
 	memcpy(fru_mac_addr, fru_iua.mac_addr, MACADDR_SIZE);
 
-	int i = 0;
+	int i = fru_iua.num_mac_addrs -1 ;
+	int add_count = 0;
+	uint8_t original_mac_addr_five = fru_mac_addr[5];
 	debug("Number of Addrs: %d\n", fru_iua.num_mac_addrs);
-	for (; i < fru_iua.num_mac_addrs; ++i) {
+	for (; i > 0 ; i--, add_count++) {
+		fru_mac_addr[5] = original_mac_addr_five + add_count;
+		if (fru_mac_addr[5] == 0) fru_mac_addr[4] += 1;
+		if (fru_mac_addr[4] == 0) fru_mac_addr[3] += 1;
+		if (fru_mac_addr[3] == 0) fru_mac_addr[2] += 1;
+		if (fru_mac_addr[2] == 0) fru_mac_addr[1] += 1;
+		if (fru_mac_addr[1] == 0) fru_mac_addr[0] += 1;
+
 		/* env always takes priority */
-		if (!eth_getenv_enetaddr_by_index("eth", i, temp_mac_addr)) {
-			eth_setenv_enetaddr_by_index("eth", i,
+		if (!eth_getenv_enetaddr_by_index("eth", i-1, temp_mac_addr)) {
+			eth_setenv_enetaddr_by_index("eth", i-1,
 						     fru_mac_addr);
 		} else {
 			debug("eth%daddr already in env\n", i);
 		}
-		fru_mac_addr[5] += 1;
 	}
 
 	return 0;
