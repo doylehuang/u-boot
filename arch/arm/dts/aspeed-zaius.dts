@@ -9,14 +9,20 @@
 	};
 
 	aliases {
-		/* i2c buses are 0-based in DT and 1 based in schematic.
-		 * Also u-boot i2c driver gets upset if you try to select bus 0.
-		 */
 		i2c1 = &i2c0;
+		i2c4 = &i2c3;
+		i2c8 = &i2c7;
 	};
 };
 
 &i2c0 {
 	status = "okay";
-	clock-frequency = <400000>;
+};
+
+&i2c3 {
+	status = "okay";
+};
+
+&i2c7 {
+	status = "okay";
 };
